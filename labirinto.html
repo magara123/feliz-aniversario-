@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Labirinto</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #7b2ff7, #9d4edd, #c77dff);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: #fff;
+      text-align: center;
+    }
+
+    canvas {
+      border: 4px solid #fff;
+      background: #222;
+      display: block;
+      margin-bottom: 20px;
+    }
+
+    .controles {
+      display: grid;
+      grid-template-columns: 60px 60px 60px;
+      grid-template-rows: 60px 60px;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .controles button {
+      width: 60px;
+      height: 60px;
+      font-size: 20px;
+      border-radius: 10px;
+      border: none;
+      background: #9d4edd;
+      color: white;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      cursor: pointer;
+    }
+
+    .controles button:active {
+      background: #7b2ff7;
+    }
+
+    #vitoriaTela {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      z-index: 100;
+      text-align: center;
+    }
+
+    #vitoriaTela h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    #vitoriaTela p {
+      font-size: 1.2em;
+      margin-bottom: 20px;
+    }
+
+    #vitoriaTela button {
+      padding: 15px 30px;
+      font-size: 1.2em;
+      border: none;
+      border-radius: 10px;
+      background: #9d4edd;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    #vitoriaTela button:active {
+      background: #7b2ff7;
+    }
+  </style>
+</head>
+<body>
+  <h1>Ajude a personagem a chegar até o seu amor 💜</h1>
+
+  <canvas id="labirinto" width="600" height="600"></canvas>
+
+  <div class="controles">
+    <div></div>
+    <button onclick="mover('up')">⬆️</button>
+    <div></div>
+    <button onclick="mover('left')">⬅️</button>
+    <button onclick="mover('down')">⬇️</button>
+    <button onclick="mover('right')">➡️</button>
+  </div>
+
+  <!-- Tela de vitória -->
+  <div id="vitoriaTela">
+    <h1>Você chegou até seu amor! 💜✨</h1>
+    <p>Ela é meu tudo... Eu te amo! 💖</p>
+    <button onclick="window.location.href='index.html'">🔄 Voltar ao início</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script>
+    const canvas = document.getElementById("labirinto");
+    const ctx = canvas.getContext("2d");
+    const tamanho = 30;
+    const linhas = 20;
+    const colunas = 20;
+
+    let mapa = [];
+    let jogador = { x: 0, y: 0 };
+    let amorzinho = { x: colunas - 2, y: linhas - 2 };
+
+    const vitoriaTela = document.getElementById("vitoriaTela");
+
+    function gerarLabirinto(linhas, colunas) {
+      let grid = Array.from({ length: linhas }, () => Array.from({ length: colunas }, () => 1));
+      function vizinhos(x, y) {
+        return [[x, y-2],[x, y+2],[x-2, y],[x+2, y]].filter(([nx, ny]) => nx>=0 && ny>=0 && nx<colunas && ny<linhas);
+      }
+      function dfs(x, y) {
+        grid[y][x]=0;
+        let neigh = vizinhos(x,y);
+        neigh.sort(()=>Math.random()-0.5);
+        for(let [nx,ny] of neigh){
+          if(grid[ny][nx]===1){
+            grid[(y+ny)/2][(x+nx)/2]=0;
+            dfs(nx, ny);
+          }
+        }
+      }
+      dfs(0,0);
+      grid[0][0]=0;
+      grid[linhas-2][colunas-2]=0;
+      return grid;
+    }
+
+    function iniciarJogo(){
+      mapa = gerarLabirinto(linhas, colunas);
+      jogador = { x: 0, y: 0 };
+      amorzinho = { x: colunas - 2, y: linhas - 2 };
+      vitoriaTela.style.display = "none";
+      desenhar();
+    }
+
+    function desenhar(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      for(let y=0;y<linhas;y++){
+        for(let x=0;x<colunas;x++){
+          if(mapa[y][x]===1){
+            ctx.fillStyle="#444";
+            ctx.fillRect(x*tamanho,y*tamanho,tamanho,tamanho);
+          }
+        }
+      }
+      ctx.fillStyle="pink";
+      ctx.beginPath();
+      ctx.arc(amorzinho.x*tamanho+tamanho/2, amorzinho.y*tamanho+tamanho/2, tamanho/2.5,0,Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle="yellow";
+      ctx.beginPath();
+      ctx.arc(jogador.x*tamanho+tamanho/2, jogador.y*tamanho+tamanho/2, tamanho/2.5,0,Math.PI*2);
+      ctx.fill();
+    }
+
+    function mover(direcao){
+      let novoX=jogador.x;
+      let novoY=jogador.y;
+      if(direcao==="up") novoY--;
+      if(direcao==="down") novoY++;
+      if(direcao==="left") novoX--;
+      if(direcao==="right") novoX++;
+      if(novoX>=0 && novoX<colunas && novoY>=0 && novoY<linhas && mapa[novoY][novoX]===0){
+        jogador.x=novoX;
+        jogador.y=novoY;
+      }
+      if(jogador.x===amorzinho.x && jogador.y===amorzinho.y){
+        vitoria();
+      }
+      desenhar();
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowUp") mover("up");
+      if (e.key === "ArrowDown") mover("down");
+      if (e.key === "ArrowLeft") mover("left");
+      if (e.key === "ArrowRight") mover("right");
+    });
+
+    function vitoria(){
+      confetti({particleCount:300, spread:150, origin:{y:0.6}});
+      vitoriaTela.style.display="flex";
+    }
+
+    iniciarJogo();
+  </script>
+</body>
+</html>

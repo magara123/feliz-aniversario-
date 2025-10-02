@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feliz Aniversário, meu amor!</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Música escondida -->
+  <audio id="musica" loop>
+    <source src="vícios-e-virtudes-ao-vivo.mp3" type="audio/mpeg">
+    Seu navegador não suporta áudio.
+  </audio>
+
+  <div class="container">
+    <h1> Feliz Aniversário, meu amor! </h1>
+    <p>Hoje é um dia muito especial, porque celebramos você, a pessoa mais incrível da minha vida. 💜</p>
+    
+    <div class="galeria">
+      <img src="img/IMG-20250923-WA0102.jpg" alt="Nós duas">
+      <img src="img/IMG-20250923-WA0103.jpg" alt="Um momento especial">
+      <img src="img/image1.jpeg" alt="Mais um sorriso lindo">
+    </div>
+
+    <p class="frase">"Ao seu lado, todos os dias são presentes." 💝</p>
+
+    <!-- Botão para música -->
+    <button id="playBtn">🎶 Tocar música</button>
+    <br><br>
+
+    <!-- Botão para próxima fase -->
+    <button onclick="irParaLabirinto()">➡️ Próximo</button>
+  </div>
+
+  <script>
+    const musica = document.getElementById("musica");
+    const playBtn = document.getElementById("playBtn");
+    let tocando = false;
+
+    playBtn.addEventListener("click", () => {
+      if (!tocando) {
+        musica.play();
+        playBtn.textContent = "⏸️ Pausar música";
+        tocando = true;
+        localStorage.setItem("musicaTocando", "true");
+      } else {
+        musica.pause();
+        playBtn.textContent = "🎶 Tocar música";
+        tocando = false;
+        localStorage.setItem("musicaTocando", "false");
+      }
+    });
+
+    function irParaLabirinto() {
+      localStorage.setItem("musicaTempo", musica.currentTime); 
+      if (tocando) localStorage.setItem("musicaTocando", "true");
+      else localStorage.setItem("musicaTocando", "false");
+      window.location.href = "labirinto.html";
+    }
+  </script>
+</body>
+</html>
